@@ -1,0 +1,109 @@
+
+   ############################################################
+   ##                                                        ##
+   ##               Phase Lunaire & Journée                  ##
+   ##                                                        ##
+   ############################################################
+#- platform: moon #phase de la lune deprecied 2022.12.0
+- platform: template
+  sensors:
+    moon_phases:
+      friendly_name: 'Lune'
+      value_template: >-
+        {% set phases = {'first_quarter': 'Premier quartier',
+                         'full_moon': 'Pleine lune',
+                         'last_quarter': 'Dernier quartier', 
+                         'new_moon': 'Nouvelle lune',
+                         'waning_crescent': 'Dernier croissant', 
+                         'waning_gibbous': 'Gibbeuse décroissante',
+                         'waxing_crescent': 'Premier croissant', 
+                         'waxing_gibbous': 'Gibbeuse croissante'} %}
+        {% set phase = states('sensor.moon') %}
+        {{ phases[phase] if phase in phases.keys() else 'Error' }}
+
+#Season #####################################################################
+- platform: template
+  sensors:
+    saison:
+      value_template: >
+        {% if is_state("sensor.season", "spring") %}
+          Printemps
+        {% elif is_state("sensor.season", "summer") %}
+          Eté
+        {% elif is_state("sensor.season", "autumn") %}
+          Automne
+        {% elif is_state("sensor.season", "winter") %}
+          Hiver
+        {% else %}
+          Erreur
+        {% endif %}  
+        
+- platform: template
+  sensors:
+    solar_angle:
+      friendly_name: 'Angle du soleil'
+      unit_of_measurement: '°'
+      value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
+
+- platform: template #utilisé pour les volets
+  sensors:
+      sunazimuth:
+        friendly_name: "azimut soleil"
+        value_template: "{{ state_attr('sun.sun', 'azimuth') }}"
+#on indique que la valeur de cette entité sera égale à la valeur de l'attribut azimuth de l'entité sun.sun
+
+- platform: template
+  sensors:    
+    soleil:
+        friendly_name: 'Période de la journée'
+        value_template: >-
+          {% if (as_timestamp(states.sun.sun.attributes.next_dusk)) - (as_timestamp(states.sun.sun.attributes.next_setting)) < 0 %}
+            Crépuscule
+          {% elif (as_timestamp(states.sun.sun.attributes.next_rising)) - (as_timestamp(states.sun.sun.attributes.next_dawn)) < 0 %}
+            Aube
+          {% elif (states.sun.sun.attributes.elevation) < 0 %}
+            Nuit
+          {% else %}
+            Jour
+          {% endif %}
+        icon_template: >-
+          {% if is_state('sun.sun', 'above_horizon') %}
+            mdi:weather-sunny
+          {% else %}
+            mdi:weather-night
+          {% endif %}
+
+    next_aube:
+      friendly_name: "Prochaine Aube"
+      value_template: >
+        {{ as_timestamp(states.sun.sun.attributes.next_dawn) | timestamp_custom('%H:%M')}}
+        
+    next_dusk:
+      friendly_name: "Prochain Crépuscule"
+      value_template: >
+        {{ as_timestamp(states.sun.sun.attributes.next_dusk) | timestamp_custom('%H:%M')}}
+
+    next_midnight:
+      friendly_name: "Minuit suivant"
+      value_template: >
+        {{ as_timestamp(states.sun.sun.attributes.next_midnight) | timestamp_custom('%H:%M')}}
+
+    next_noon:
+      friendly_name: "Midi suivant"
+      value_template: >
+        {{ as_timestamp(states.sun.sun.attributes.next_noon) | timestamp_custom('%H:%M')}}
+     
+    next_rising:
+      friendly_name: "Prochain levée de soleil"
+      value_template: >
+        {{ as_timestamp(states.sun.sun.attributes.next_rising) | timestamp_custom('%H:%M')}}
+      icon_template: mdi:weather-sunset-up
+
+    next_setting:
+      friendly_name: "Prochain couchée de soleil"
+      value_template: >
+        {{ as_timestamp(states.sun.sun.attributes.next_setting) | timestamp_custom(' %H:%M')}}
+      icon_template: mdi:weather-sunset-down
+      
+
+    
