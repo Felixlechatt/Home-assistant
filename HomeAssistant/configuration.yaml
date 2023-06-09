@@ -1,0 +1,163 @@
+############################################################
+##                     HOME ASSISTANT                     ##
+############################################################
+
+homeassistant:
+  name: Home
+  country: FR
+  latitude: !secret ha_latitude
+  longitude: !secret ha_longitude
+  elevation: xxx 
+  temperature_unit: c
+  unit_system: metric
+  time_zone: Europe/Paris
+  packages: !include_dir_named packages/
+  allowlist_external_dirs: [/config/]
+  auth_providers:
+    - type: homeassistant
+  internal_url: !secret internal_url
+  customize: !include_dir_merge_named customize/
+# Configure a default setup of Home Assistant (frontend, api, etc)
+# Example configuration.yaml
+  media_dirs:
+    local: "/media"
+
+lovelace:
+  mode: yaml
+  resources: !include www/custom-lovelace/resources.yaml
+tts:
+  - platform: google_translate
+logger:
+  default: info
+  
+default_config:
+config:
+hassio:
+energy:
+sun:
+map:
+zodiac:
+person:
+history:
+#updater: #deprecated version 2022.5+
+mobile_app:
+python_script:
+system_health:
+media_source:
+delete:
+
+#alert: !include alert.yaml
+group: !include_dir_merge_named group/
+automation: !include automations.yaml
+scene: !include_dir_merge_list scene/
+sensor: !include_dir_merge_list sensor/
+scrape: !include_dir_merge_list scrape/
+zone: !include_dir_merge_list zone/
+input_select: !include_dir_merge_named input_select/
+input_text: !include input_text.yaml
+recorder: !include recorder.yaml
+script: !include_dir_merge_named script/
+
+#######################################
+###         SECURITEE D'ACCES       ###
+#######################################
+http:
+  server_port: xxxx
+  ssl_profile: modern
+  use_x_forwarded_for: true
+  ip_ban_enabled: true
+  trusted_proxies:
+    - 127.0.x.x
+  login_attempts_threshold: 4
+ 
+################################################
+###         BROWSER MOD                       ##
+################################################
+#browser_mod:
+# disable:
+#   - all
+#################################################
+frontend:
+  themes: !include_dir_merge_named themes
+################################################
+###             INPUT_BOOLEAN                 ##
+################################################
+input_boolean:
+  stop_rain_notification:
+    name: Notify quand la pluie cesse
+  notif_actionable:
+    name: Action sur notification
+  sommaire:
+    name: state-switch sommaire
+  essence:
+    name: stations essence 
+  battery:
+    name: batteries
+  irobot:
+    name: Irobot J7+
+
+############################
+###     Input_number     ###
+############################
+input_number:
+  sommaire2:
+    name: Sommaire
+    initial: 1
+    min: 1
+    max: 3
+    step: 1 
+  ecu_r:
+    name: Ecu-R
+    initial: 0
+    min: 0
+    max: 10000    
+############################
+###    BINARY_SENSOR     ###
+############################
+
+binary_sensor:
+  - platform: threshold
+    name: "soleil volets sud"
+    upper: 250
+    lower: 90
+    entity_id: sensor.sunazimuth
+  - platform: threshold
+    name: "soleil volets ouest"
+    upper: 270
+    lower: 180
+    entity_id: sensor.sunazimuth
+    #on a donc créé une entité qui sera active si la valeur de sensor.sunazimuth est supérieure à 180 et inférieure à 270
+  - platform: ping
+    name: "ping cloudflare"
+    host: 1.1.1.1
+    count: 2
+    scan_interval: 30
+  - platform: ping
+    name: "ping google"
+    host: 8.8.8.8
+    count: 2
+    scan_interval: 30
+  - platform: ping
+    name: "ping Ecu-R"
+    host: 192.168.1.40
+    count: 2
+    scan_interval: 30
+############################
+###       CALENDAR       ###
+############################
+calendar:
+  - platform: caldav
+    username: !secret idcalendar_caldav_syno
+    password: !secret passcalendar_caldav_syno
+    url: !secret urlcalendar_caldav_syno
+    days: 16
+    custom_calendars:
+      - name: 'Anniversaire'
+        calendar: 'Agenda'
+        search: 'Anniversaire'
+      - name: 'All'
+        calendar: 'Agenda'
+        search: '(?i)^(?!(.*Poubelle.*)|(.+[\s\S]*Poubelle[\s\S]*))\b.*'
+      - name: 'Poubelle'
+        calendar: 'Agenda'
+        search: 'Poubelle'
