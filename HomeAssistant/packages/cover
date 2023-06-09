@@ -1,1 +1,45 @@
-test
+cover:   
+   ############################################################
+   ##                    COVERS GROUPS                       ##
+   ############################################################
+  - platform: group
+    name: Volets de la maison
+    entities:
+      - cover.module_volet_salon
+      - cover.module_volet_sejour
+      - cover.module_volet_cuisine
+      
+  - platform: group
+    name: Volets orientés sud 
+    entities:
+      - cover.module_volet_salon
+      
+  - platform: group
+    name: Volets orientés ouest
+    entities:
+      - cover.module_volet_sejour
+      - cover.module_volet_cuisine
+
+
+group:
+   ############################################################
+   ##                    ALL COVERS GROUPS                   ##
+   ############################################################
+  all_covers_home:
+    name: Volets de la maison
+    entities:
+      - cover.module_volet_salon
+      - cover.module_volet_sejour 
+      - cover.module_volet_cuisine
+
+  all_covers_sud:
+    name: Volets orientés sud
+    entities:  
+      - cover.module_volet_salon
+
+
+  all_covers_ouest:
+    name: Volets orientés ouest
+    entities:  
+      - cover.module_volet_sejour 
+      - cover.module_volet_cuisine
