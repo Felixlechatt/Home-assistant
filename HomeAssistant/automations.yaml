@@ -1,0 +1,265 @@
+- id: 16risks956456360
+  alias: Volet
+  description: ''
+  trigger:
+  - platform: sun
+    event: sunrise
+  - platform: sun
+    event: sunset
+  - platform: state
+    entity_id:
+    - sensor.xx_weather_alert
+    attribute: Canicule
+  - platform: state
+    entity_id:
+    - input_select.mode_volet
+    id: Mode
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+  - platform: time_pattern
+    minutes: /2
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: Mode
+      sequence:
+      - service: input_select.select_option
+        data_template:
+          entity_id:
+          - input_select.modevoletsud
+          - input_select.modevoletouest
+          option: '{{ states(''input_select.mode_volet'') }}'
+      - service: automation.trigger
+        data:
+          skip_condition: true
+        target:
+          entity_id: automation.volet
+    - conditions:
+      - condition: sun
+        after: sunset
+        after_offset: 00:00:00
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: group.all_covers_ouest
+          state: open
+        - condition: state
+          entity_id: group.all_covers_sud
+          state: open
+        enabled: false
+      - condition: not
+        conditions:
+        - condition: state
+          entity_id: input_select.mode_volet
+          state: Manuel
+      sequence:
+      - service: cover.close_cover
+        data: {}
+        target:
+          entity_id:
+          - cover.volets_orientes_ouest
+          - cover.volets_orientes_sud
+    - conditions:
+      - condition: sun
+        after: sunrise
+        after_offset: 00:00:00
+        before: sunset
+      - condition: not
+        conditions:
+        - condition: state
+          state: 'on'
+          entity_id: binary_sensor.soleil_volets_ouest
+        - condition: device
+          device_id: 1749e9c0cec4bfc8cadb6060b2109555
+          domain: cover
+          entity_id: cover.module_volet_cuisine
+          type: is_position
+          above: 50
+        - condition: device
+          device_id: be052f85354620b14a75e06914a6140d
+          domain: cover
+          entity_id: cover.module_volet_sejour
+          type: is_position
+          above: 50
+      - condition: state
+        entity_id: input_select.modevoletouest
+        state: Auto froid
+      - condition: state
+        entity_id: sensor.xx_weather_alert
+        attribute: Canicule
+        state: Vert
+        enabled: false
+      sequence:
+      - service: cover.set_cover_position
+        data:
+          position: 100
+        target:
+          entity_id: cover.volets_orientes_ouest
+    - conditions:
+      - condition: sun
+        before: sunset
+        after: sunrise
+        after_offset: 00:00:00
+      - condition: not
+        conditions:
+        - condition: state
+          entity_id: binary_sensor.soleil_volets_sud
+          state: 'on'
+        - condition: state
+          state: open
+          entity_id: group.all_covers_sud
+          enabled: false
+        - condition: device
+          device_id: 012fbd33f6b7cc0f9b5237f2a376a5a8
+          domain: cover
+          entity_id: cover.module_volet_salon
+          type: is_position
+          above: 50
+      - condition: and
+        conditions:
+        - condition: state
+          entity_id: input_select.modevoletsud
+          state: Auto froid
+        - condition: state
+          entity_id: sensor.xx_weather_alert
+          attribute: Canicule
+          state: Vert
+          enabled: false
+      sequence:
+      - service: cover.set_cover_position
+        data:
+          position: 100
+        target:
+          entity_id: cover.volets_orientes_sud
+    - conditions:
+      - condition: state
+        entity_id: binary_sensor.soleil_volets_sud
+        state: 'on'
+      - condition: and
+        conditions:
+        - condition: state
+          entity_id: input_select.modevoletsud
+          state: Auto froid
+        - condition: device
+          device_id: 012fbd33f6b7cc0f9b5237f2a376a5a8
+          domain: cover
+          entity_id: cover.module_volet_salon
+          type: is_position
+          above: 50
+      sequence:
+      - service: cover.set_cover_position
+        data:
+          position: 35
+        target:
+          entity_id: cover.volets_orientes_sud
+    - conditions:
+      - condition: state
+        entity_id: binary_sensor.soleil_volets_ouest
+        state: 'on'
+      - condition: and
+        conditions:
+        - condition: state
+          entity_id: input_select.modevoletouest
+          state: Auto froid
+        - condition: device
+          device_id: 1749e9c0cec4bfc8cadb6060b2109555
+          domain: cover
+          entity_id: cover.module_volet_cuisine
+          type: is_position
+          above: 50
+        - condition: device
+          device_id: be052f85354620b14a75e06914a6140d
+          domain: cover
+          entity_id: cover.module_volet_sejour
+          type: is_position
+          above: 50
+      sequence:
+      - service: cover.set_cover_position
+        data:
+          position: 35
+        target:
+          entity_id: cover.volets_orientes_ouest
+    - conditions:
+      - condition: state
+        state: Normal
+        entity_id: input_select.mode_volet
+      - condition: sun
+        before: sunset
+        after: sunrise
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: group.all_covers_sud
+          state: closed
+        - condition: state
+          entity_id: group.all_covers_ouest
+          state: closed
+        enabled: false
+      - condition: device
+        device_id: 012fbd33f6b7cc0f9b5237f2a376a5a8
+        domain: cover
+        entity_id: cover.module_volet_salon
+        type: is_closed
+      - condition: device
+        device_id: be052f85354620b14a75e06914a6140d
+        domain: cover
+        entity_id: cover.module_volet_sejour
+        type: is_closed
+      sequence:
+      - service: cover.set_cover_position
+        data:
+          position: 100
+        target:
+          entity_id:
+          - cover.volets_orientes_ouest
+          - cover.volets_orientes_sud
+    - conditions:
+      - condition: sun
+        before: sunset
+        after: sunrise
+      - condition: state
+        state: Auto chauf
+        entity_id: input_select.mode_volet
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: group.all_covers_ouest
+          state: open
+        - condition: state
+          entity_id: group.all_covers_sud
+          state: open
+        enabled: false
+      sequence:
+      - service: cover.close_cover
+        data: {}
+        target:
+          entity_id:
+          - cover.volets_orientes_sud
+          - cover.volets_orientes_ouest
+    - conditions:
+      - condition: state
+        entity_id: sensor.xx_weather_alert
+        attribute: Canicule
+        state: Orange
+      - condition: state
+        entity_id: sensor.xx_weather_alert
+        attribute: Canicule
+        state: Rouge
+      - condition: not
+        conditions:
+        - condition: state
+          entity_id: input_select.mode_volet
+          state: Auto froid
+      sequence:
+      - service: notify.notify
+        data:
+          message: Alert Canicule :{% set weather_alert = state_attr('sensor.xx_weather_alert',
+            'Canicule') %} {% set message = '\U0001FA9F Volet mode Auto-froid recommandé
+            ' if weather_alert in ['Orange', 'Rouge'] else 'Fausse Alerte' %} {{ message
+            }}
+    default: []
+  mode: restart
