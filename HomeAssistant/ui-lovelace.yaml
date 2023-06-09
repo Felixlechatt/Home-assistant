@@ -1,0 +1,17 @@
+title: Maison
+
+decluttering_templates:
+  !include www/custom-lovelace/decluttering_templates.yaml
+
+button_card_templates:
+  !include www/custom-lovelace/button_card_templates.yaml
+
+views: 
+  - !include www/lovelace/00_home_view.yaml
+  - !include www/lovelace/01_meteo.yaml
+  - !include www/lovelace/02_camera.yaml
+  - !include www/lovelace/03_statistique.yaml
+  - !include www/lovelace/04_informatique.yaml
+  - !include www/lovelace/05_settings.yaml
+  - !include www/lovelace/06_projets.yaml
+
