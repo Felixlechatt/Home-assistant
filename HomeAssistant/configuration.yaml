@@ -4,7 +4,7 @@
 
 homeassistant:
   name: Home
-  country: FR
+  country: XX
   latitude: !secret ha_latitude
   longitude: !secret ha_longitude
   elevation: xxx 
@@ -139,7 +139,7 @@ binary_sensor:
     scan_interval: 30
   - platform: ping
     name: "ping Ecu-R"
-    host: 192.168.1.40
+    host: 192.168.1.99
     count: 2
     scan_interval: 30
 ############################
