@@ -1,0 +1,140 @@
+- id: '1679590381458'
+  alias: '[NOTIFY] Production Solaire'
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.energy_exporting_wh
+  - platform: time
+    at: '23:55:00'
+  condition:
+  - condition: state
+    entity_id: binary_sensor.presence_home
+    state: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+  - condition: or
+    conditions:
+    - condition: template
+      value_template: '{{ states(''sensor.energy_exporting_wh'')|float > states(''input_number.ecu_r'')|float
+        + 200}}'
+    - condition: template
+      value_template: '{{ states(''sensor.energy_exporting_wh'')|float < states(''input_number.ecu_r'')|float
+        - 200}}'
+  action:
+  - choose:
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.ecu_current_power
+        above: 451
+        below: 850
+      sequence:
+      - service: input_number.set_value
+        data_template:
+          value: '{{states(''sensor.energy_exporting_wh'') }}'
+        target:
+          entity_id: input_number.ecu_r
+      - parallel:
+        - if:
+          - condition: state
+            entity_id: person.xxxxx
+            state: home
+          then:
+          - service: notify.mobile_app_xxxx
+            data:
+              title: ⚡Production solaire légère
+              message: '⛅ Production : {{ states(''sensor.ecu_current_power'') }}wh
+                dont <b>{{states(''sensor.energy_exporting_wh'') }}wh en surplus</b>\n
+                ℹ️ Ideal pour : Lampe, Televiseur, Ordinateur portable'
+        - if:
+          - condition: state
+            entity_id: person.xxxx
+            state: home
+          then:
+          - service: notify.mobile_app_xxxx
+            data:
+              title: ⚡Production solaire légère
+              message: '⛅ Production : {{ states(''sensor.ecu_current_power'') }}wh
+                dont <b>{{states(''sensor.energy_exporting_wh'') }}wh en surplus</b>\n
+                ℹ️ Ideal pour : Lampe, Televiseur, Ordinateur portable'
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.ecu_current_power
+        above: 851
+        below: 1300
+      sequence:
+      - service: input_number.set_value
+        data_template:
+          value: '{{states(''sensor.energy_exporting_wh'') }}'
+        target:
+          entity_id: input_number.ecu_r
+      - parallel:
+        - if:
+          - condition: state
+            entity_id: person.xxxx
+            state: home
+          then:
+          - service: notify.mobile_app_xxxx
+            data:
+              title: ⚡Production moyenne
+              message: '⛅ Production : {{ states(''sensor.ecu_current_power'') }}wh
+                dont <b>{{states(''sensor.energy_exporting_wh'') }}wh en surplus</b>\n
+                ℹ️ Ideal pour : Fer à repasser, Micro-onde, Aspirateur, Lave-linge,
+                Grille-pain, Bouilloire..'
+        - if:
+          - condition: state
+            entity_id: person.xxxx
+            state: home
+          then:
+          - service: notify.mobile_xxx
+            data:
+              title: ⚡Production moyenne
+              message: '⛅ Production : {{ states(''sensor.ecu_current_power'') }}wh
+                dont <b>{{states(''sensor.energy_exporting_wh'') }}wh en surplus</b>\n
+                ℹ️ Ideal pour : Fer à repasser, Micro-onde, Aspirateur, Lave-linge,
+                Grille-pain, Bouilloire..'
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.ecu_current_power
+        above: 1300
+      sequence:
+      - service: input_number.set_value
+        data_template:
+          value: '{{states(''sensor.energy_exporting_wh'') }}'
+        target:
+          entity_id: input_number.ecu_r
+      - parallel:
+        - if:
+          - condition: state
+            entity_id: person.xxx
+            state: home
+          then:
+          - service: notify.mobile_xxx
+            data:
+              title: ⚡Production importante
+              message: '⛅ Production : {{ states(''sensor.ecu_current_power'') }}wh
+                dont <b>{{states(''sensor.energy_exporting_wh'') }}wh en surplus</b>\n
+                ℹ️ Ideal pour : Four électrique, Chauffage, Plaque de cuisson...'
+        - if:
+          - condition: state
+            entity_id: person.xxx
+            state: home
+          then:
+          - service: notify.mobile_app_xxxx
+            data:
+              title: ⚡Production importante
+              message: '⛅ Production : {{ states(''sensor.ecu_current_power'') }}wh
+                dont <b>{{states(''sensor.energy_exporting_wh'') }}wh en surplus</b>\n
+                ℹ️ Ideal pour : Four électrique, Chauffage, Plaque de cuisson...'
+    - conditions:
+      - condition: time
+        after: '23:55:00'
+      sequence:
+      - service: input_number.set_value
+        data:
+          value: 0
+        target:
+          entity_id: input_number.ecu_r
+  mode: single
