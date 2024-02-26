@@ -51,14 +51,13 @@ template:
           {% set consommation_reseau = states('sensor.zlinky_sinsts')|float(default=0) %}
           {% set production_solaire = states('sensor.ecu_current_power')|float(default=0) %}
           {% set moyenne_consommation_horssolaire = states('sensor.moyenne_conso_zlinky')|float(default=0) %}
-          {% set puissance_solaire_installee = 2400 %}
-          {% set consommation_corrigee = states('sensor.consommation_electrique_corrigee')|replace('\n', '')|float(default=0) %}
+          {% set consommation_corrigee = states('sensor.consommation_electrique_corrigee')|float(default=0) %}
           {% set last_updated_ecu = states.sensor.ecu_current_power.last_updated %}
           {% set last_updated_zlinky = states.sensor.zlinky_sinsts.last_updated %}
           {% set minutes_since_update_ecu = ((as_timestamp(now()) - as_timestamp(last_updated_ecu)) / 60)|int(default=0) %}
           {% set minutes_since_update_zlinky = ((as_timestamp(now()) - as_timestamp(last_updated_zlinky)) / 60)|int(default=0) %}
           {% if production_solaire > 0 %}
-            {% if last_updated_ecu and last_updated_zlinky and minutes_since_update_ecu <= 15 %}
+            {% if minutes_since_update_ecu <= 15 %}
               {% if consommation_reseau > 0 %}
                 {% set consommation_corrigee = production_solaire + consommation_reseau %}
                 {% if 0.70 * moyenne_consommation_horssolaire <= consommation_corrigee <= 1.30 * moyenne_consommation_horssolaire %}
@@ -71,13 +70,13 @@ template:
                   {% set consommation_corrigee = moyenne_consommation_horssolaire %}
                 {% endif %}
               {% elif consommation_reseau == 0 %}
-                {% set consommation_corrigee = moyenne_consommation_horssolaire * (1 + (production_solaire / (puissance_solaire_installee - moyenne_consommation_horssolaire))*0.3) %}
+                {% set consommation_corrigee = moyenne_consommation_horssolaire * (1 + (production_solaire / (moyenne_consommation_horssolaire))*0.15) %}
               {% endif %}
             {% else %}
               {{ moyenne_consommation_horssolaire }}
             {% endif %}
           {% elif production_solaire == 0 %}
-            {% if last_updated_zlinky and minutes_since_update_zlinky <= 15 %}
+            {% if minutes_since_update_zlinky <= 15 %}
               {% set consommation_corrigee = consommation_reseau %}
             {% endif %}
           {% endif %}          
@@ -102,14 +101,14 @@ template:
 
       #- name: "myelectricaldata_current_month"
       #  unique_id: 'myelectricdata current month'
-      #  state: "{{ (state_attr('sensor.linky_0123456789_consumption', 'current_month')) }}"
+      #  state: "{{ (state_attr('sensor.linky_01437047692840_consumption', 'current_month')) }}"
       #  device_class: energy
       #  unit_of_measurement: 'kWh'
       #  icon: 'mdi:flash'
 
       #- name: "myelectricaldata_current_month_last_year"
       #  unique_id: 'myelectricdata current month last month'
-      #  state: "{{ (state_attr('sensor.linky_123456789_consumption', 'current_month_last_year')) }}"
+      #  state: "{{ (state_attr('sensor.linky_01437047692840_consumption', 'current_month_last_year')) }}"
       #  device_class: energy
       #  unit_of_measurement: 'kWh'
       #  icon: 'mdi:flash'
@@ -129,7 +128,7 @@ sensor:
     name: "Moyenne conso zlinky" #nom du capteur final
     #sampling_size: 2880 #288
     max_age:
-      hours: 24
+      hours: 30
     state_characteristic: mean
     
 
