@@ -1,0 +1,99 @@
+##############################
+###     Base de données     ##
+##############################
+
+  purge_keep_days: 10
+  commit_interval: 3
+  auto_purge: true
+  auto_repack: true
+  include:
+    domains:
+      - sensor
+      - input_datetime
+      - input_text
+      - light
+      - cover
+    #  - device_tracker
+      - person
+    #  - media_player
+  exclude:
+    domains:
+      - alarm_control_panel
+      - automation
+      - button
+      - device_tracker
+      - media_player
+      - binary_sensor
+      - calendar
+      - camera
+      - climate
+      - counter
+      - group
+      - input_boolean
+      - input_datetime
+      - input_number
+      - input_select
+      - persistent_notification
+      - proximity
+      - remote
+      - scene
+      - script
+      - sun
+      - switch
+      - timer
+      - vacuum
+      - weather
+      - zone
+      - zwave
+    event_types:
+      - automation_triggered
+      - browser_mod
+      - call_service
+      - component_loaded
+      - feedreader
+      - home_assistant_start
+      - home_assistant_stop
+      - homeassistant_start
+      - homeassistant_stop
+      - platform_discovered
+      - script_started
+      - service_executed
+      - service_registered
+      - service_removed
+      - timer_out_of_sync
+    entities:
+      - sensor.light_level
+      - sensor.ups_battery_runtime
+      - sensor.ups_runtime_friendly
+      - sensor.upcoming_poubelle
+      - sensor.cycleday
+      - sensor.date
+      - sensor.hacs
+      - sensor.last_boot
+      - sensor.soleil
+      - sensor.time
+      - sensor.watchman
+      - sensor.upcoming_event
+      - sensor.zodiac
+      - sun.sun
+    entity_globs:
+      - light.browser*
+      - media_player.browser*
+      - sensor.*_battery
+      - sensor.*_low_battery_level
+      - sensor.blague_*
+      - sensor.cnmf642c_*
+      - sensor.date_*
+      - sensor.derniere_*
+      - sensor.event_*
+      - sensor.freebox_temperature_*
+      - sensor.memory_*
+      - sensor.myenedis_*
+      - sensor.next_*
+      - sensor.processor_*
+      - sensor.saint_*
+      - sensor.sun*
+      - sensor.time_*
+      - sensor.temps_*
+      - sensor.ecowatt*
+      - sensor.inverter*
