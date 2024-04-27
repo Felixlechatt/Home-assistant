@@ -1,0 +1,74 @@
+alias: Rafraichissement Nocturne Matinal
+trigger:
+  - platform: time_pattern
+    minutes: /5
+    seconds: 0
+condition:
+  - condition: and
+    conditions:
+      - condition: template
+        value_template: "{{ now().month > 4 }}"
+      - condition: template
+        value_template: "{{ now().month < 10 }}"
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: |-
+              {{
+                not is_state_attr('input_datetime.morning_cooling_last_notification_sent', 'day', now().day) 
+              }}
+          - condition: template
+            value_template: >-
+              {{ states.sensor.salon_thermo_temperature.state | float(default=0)
+              <= (states.sensor.villexxx_temperature.state | float(default=0) -1)
+              }}
+          - condition: template
+            value_template: "{{ now().hour <= 14 }}"
+          - condition: template
+            value_template: |
+              {{
+                not is_state_attr('input_datetime.morning_cooling_last_notification_sent', 'day', now().day) 
+              }}
+        sequence:
+          - service: notify.notify
+            data_template:
+              message: >-
+                la Température intérieure {{
+                states('sensor.salon_thermo_temperature') | float | round(2) |
+                default(0) }} °C🌡️ est inférieur/égal à la température
+                extérieure {{ states('sensor.villexxx_temperature') | float |
+                round(2) | default(0) }} °C🌡️. Fermeture des fenêtres
+                recommandée 🪟
+          - service: input_datetime.set_datetime
+            entity_id: input_datetime.morning_cooling_last_notification_sent
+            data_template:
+              date: "{{ now().strftime('%Y-%m-%d') }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ (states.sensor.villexxx_temperature.state | float(0) ) > 21 }}"
+          - condition: template
+            value_template: >-
+              {{ states.sensor.salon_thermo_temperature.state | float(0) >
+              (states.sensor.villexxx_temperature.state | float(0) + 1) }}
+          - condition: template
+            value_template: "{{ now().hour >= 17 }}"
+          - condition: template
+            value_template: |
+              {{
+                not is_state_attr('input_datetime.night_cooling_last_notification_sent', 'day', now().day) 
+              }}
+        sequence:
+          - service: notify.notify
+            data_template:
+              message: >-
+                la Température intérieure {{
+                states.sensor.salon_thermo_temperature.state | float | round(2)
+                }} °C🌡️ est supérieure à la température extérieure {{
+                states.sensor.villexxx_temperature.state | float | round(2) }}
+                °C🌡️. Ouverture des fenêtres recommandée 🪟
+          - service: input_datetime.set_datetime
+            entity_id: input_datetime.night_cooling_last_notification_sent
+            data_template:
+              date: "{{ now().strftime('%Y-%m-%d') }}"
+    default: []
