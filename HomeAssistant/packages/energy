@@ -101,14 +101,14 @@ template:
 
       #- name: "myelectricaldata_current_month"
       #  unique_id: 'myelectricdata current month'
-      #  state: "{{ (state_attr('sensor.linky_01437047692840_consumption', 'current_month')) }}"
+      #  state: "{{ (state_attr('sensor.linky_xxxxxxxx_consumption', 'current_month')) }}"
       #  device_class: energy
       #  unit_of_measurement: 'kWh'
       #  icon: 'mdi:flash'
 
       #- name: "myelectricaldata_current_month_last_year"
       #  unique_id: 'myelectricdata current month last month'
-      #  state: "{{ (state_attr('sensor.linky_01437047692840_consumption', 'current_month_last_year')) }}"
+      #  state: "{{ (state_attr('sensor.linky_xxxxxxxx_consumption', 'current_month_last_year')) }}"
       #  device_class: energy
       #  unit_of_measurement: 'kWh'
       #  icon: 'mdi:flash'
