@@ -1,0 +1,37 @@
+   #############################################################
+   ###     TEMPERATURE MIN/MAX DU JOUR                        ##
+   #############################################################
+template:
+  - sensor:
+      - name: "day_max_temp"
+        unique_id: day max temp
+        unit_of_measurement: "°C"
+        state: >
+          {{ state_attr('sensor.weather_forecast_jour_xxxx','forecast')[0].temperature | float(0) }}
+  - sensor:
+      - name: "day_min_temp"
+        unique_id: day min temp
+        unit_of_measurement: "°C"
+        state: >
+          {{ state_attr('sensor.weather_forecast_jour_xxxx','forecast')[0].templow | float(0) }}
+#####################################
+##    automatisation de service    ##
+#####################################
+  - trigger:
+      - platform: time_pattern
+        hours: /1
+      - platform: homeassistant
+        event: start
+    action:
+      - service: weather.get_forecasts
+        data:
+          type: daily
+        target:
+          entity_id: weather.xxxx
+        response_variable: daily
+    sensor:
+      - name: Weather Forecast Jour xxxx
+        unique_id: weather_forecast_jour_xxxxx
+        state: "{{ daily['weather.xxxxx'].forecast[0].condition }}"
+        attributes:
+          forecast: "{{ daily['weather.xxxx'].forecast }}"
