@@ -90,7 +90,7 @@ template:
       - name: "edf_tarif_daily"
         unique_id: Prix kWh Journalier
         unit_of_measurement: €
-        state: "{{ (states('sensor.edf_total_daily') | float(default=0) * 0.228) | round(1) }}"
+        state: "{{ (states('sensor.edf_total_daily') | float(default=0) * 0.19) | round(1) }}"
         icon: 'mdi:flash'
         
       #- name: "monthlylastyear_energy_price"
@@ -128,9 +128,8 @@ sensor:
     name: "Moyenne conso zlinky" #nom du capteur final
     #sampling_size: 2880 #288
     max_age:
-      hours: 30
-    state_characteristic: mean
-    
+      hours: 25
+    state_characteristic: mean   
 
     ##################################
     ### Moyenne energy hours export ##
@@ -151,6 +150,7 @@ sensor:
 
 automation:
   alias: "[Update] daily exporté "
+  id: Dailly exporté
   description: ""
   trigger:
     - platform: time_pattern
