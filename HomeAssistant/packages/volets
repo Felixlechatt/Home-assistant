@@ -1,0 +1,84 @@
+
+cover:   
+   ############################################################
+   ##                    COVERS GROUPS                       ##
+   ############################################################
+  - platform: group
+    name: Volets de la maison
+    entities:
+      - cover.module_volet_salon
+      - cover.module_volet_sejour
+      - cover.module_volet_cuisine
+      
+  - platform: group
+    name: Volets sud 
+    entities:
+      - cover.module_volet_salon
+      
+  - platform: group
+    name: Volets ouest
+    entities:
+      - cover.module_volet_sejour
+      - cover.module_volet_cuisine
+
+############################
+###     Input_select     ###
+############################
+input_select:
+  mode_volet:
+    name: mode volet principale
+    options:
+      - Normal
+      - Hiver
+      - Ete
+      - Manuel
+  mode_voletsud:
+    name: mode volet sud
+    options:
+      - Normal
+      - Hiver
+      - Ete
+      - Manuel
+  mode_voletouest:
+    name: mode volet ouest
+    options:
+      - Normal
+      - Hiver
+      - Ete
+      - Manuel
+
+############################
+###     Input_number     ###
+############################
+input_number:
+  volet_salon_transitions:
+    name: "Compteur Transitions Volet Salon"
+    initial: 0
+    min: 0
+    max: 10  # Ajustez ce nombre en fonction de votre préférence
+  volet_sejour_transitions:
+    name: "Compteur Transitions Volet Sejour"
+    initial: 0
+    min: 0
+    max: 10  # Ajustez ce nombre en fonction de votre préférence
+  volet_cuisine_transitions:
+    name: "Compteur Transitions Volet cuisine"
+    initial: 0
+    min: 0
+    max: 10  # Ajustez ce nombre en fonction de votre préférence
+
+############################
+###    BINARY_SENSOR     ###
+############################
+binary_sensor:
+  - platform: threshold
+    name: "soleil volets sud"
+    upper: 250
+    lower: 100
+    entity_id: sensor.sunazimuth #capteur à creer
+  - platform: threshold
+    name: "soleil volets ouest"
+    upper: 260
+    lower: 180
+    entity_id: sensor.sunazimuth
+    #on a donc créé une entité qui sera active si la valeur de sensor.sunazimuth est supérieure à 180 et inférieure à 270
