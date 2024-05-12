@@ -23,6 +23,10 @@ trigger:
     entity_id:
       - sensor.temp_maison
     above: 24
+  - platform: state
+    entity_id:
+      - binary_sensor.soleil_volets_sud
+      - binary_sensor.soleil_volets_ouest
 condition: []
 action:
   - choose:
@@ -39,6 +43,11 @@ action:
               entity_id:
                 - input_select.mode_voletouest
                 - input_select.mode_voletsud
+          - service: automation.trigger
+            target:
+              entity_id: automation.volet
+            data:
+              skip_condition: true
       - conditions:
           - condition: sun
             after: sunset
@@ -59,7 +68,7 @@ action:
                     target:
                       device_id:
                         - 1749e9c0cec4bfc8cadb6060b2109555
-                        - be052f85354xx0b14a75e06914a6140d
+                        - be052f85354620b14a75e06914a6140d
                   - service: cover.set_cover_position
                     data:
                       position: 30
@@ -105,7 +114,7 @@ action:
                 type: is_position
                 above: 50
               - condition: device
-                device_id: be052f85354xx0b14a75e06914a6140d
+                device_id: be052f85354620b14a75e06914a6140d
                 domain: cover
                 entity_id: cover.module_volet_sejour
                 type: is_position
@@ -193,7 +202,7 @@ action:
                 type: is_position
                 above: 50
               - condition: device
-                device_id: be052f85354xx0b14a75e06914a6140d
+                device_id: be052f85354620b14a75e06914a6140d
                 domain: cover
                 entity_id: cover.module_volet_sejour
                 type: is_position
@@ -228,7 +237,7 @@ action:
                 entity_id: cover.module_volet_salon
                 type: is_closed
               - condition: device
-                device_id: be052f85354xx0b14a75e06914a6140d
+                device_id: be052f85354620b14a75e06914a6140d
                 domain: cover
                 entity_id: cover.module_volet_sejour
                 type: is_closed
