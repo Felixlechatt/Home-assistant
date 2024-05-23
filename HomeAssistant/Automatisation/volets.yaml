@@ -7,7 +7,7 @@ trigger:
     event: sunset
   - platform: state
     entity_id:
-      - sensor.xx_weather_alert
+      - sensor.62_weather_alert
     attribute: Canicule
     enabled: true
   - platform: state
@@ -22,6 +22,7 @@ trigger:
   - platform: numeric_state
     entity_id:
       - sensor.temp_maison
+      - sensor.day_max_temp
     above: 24
   - platform: state
     entity_id:
@@ -29,25 +30,8 @@ trigger:
       - binary_sensor.soleil_volets_ouest
 condition: []
 action:
-  - choose:
-      - conditions:
-          - condition: trigger
-            id:
-              - Mode
-            enabled: true
-        sequence:
-          - service: input_select.select_option
-            data:
-              option: "{{ states('input_select.mode_volet') }}"
-            target:
-              entity_id:
-                - input_select.mode_voletouest
-                - input_select.mode_voletsud
-          - service: automation.trigger
-            target:
-              entity_id: automation.volet
-            data:
-              skip_condition: true
+  - alias: "Gestion des volets en réaction du mode choisit "
+    choose:
       - conditions:
           - condition: sun
             after: sunset
@@ -97,6 +81,7 @@ action:
                       entity_id:
                         - cover.volets_ouest
                         - cover.volets_sud
+        alias: "[Été]Après coucher de soleil"
       - conditions:
           - condition: sun
             after: sunrise
@@ -123,7 +108,7 @@ action:
             entity_id: input_select.mode_volet
             state: Ete
           - condition: state
-            entity_id: sensor.xx_weather_alert
+            entity_id: sensor.62_weather_alert
             attribute: Canicule
             state: Vert
             enabled: false
@@ -133,6 +118,7 @@ action:
               position: 100
             target:
               entity_id: cover.volets_ouest
+        alias: "[Été]Volets Ouest - Après lever de soleil sans soleil direct"
       - conditions:
           - condition: sun
             before: sunset
@@ -155,7 +141,7 @@ action:
                 entity_id: input_select.mode_volet
                 state: Ete
               - condition: state
-                entity_id: sensor.xx_weather_alert
+                entity_id: sensor.62_weather_alert
                 attribute: Canicule
                 state: Vert
                 enabled: false
@@ -165,6 +151,7 @@ action:
               position: 100
             target:
               entity_id: cover.volets_sud
+        alias: "[Été]Volets Sud - Après lever de soleil sans soleil direct"
       - conditions:
           - condition: state
             entity_id: binary_sensor.soleil_volets_sud
@@ -179,13 +166,14 @@ action:
                 domain: cover
                 entity_id: cover.module_volet_salon
                 type: is_position
-                above: 50
+                above: 48
         sequence:
           - service: cover.set_cover_position
             data:
               position: 35
             target:
               entity_id: cover.volets_sud
+        alias: "[Été]Volets Sud - Après lever de soleil avec soleil direct"
       - conditions:
           - condition: state
             entity_id: binary_sensor.soleil_volets_ouest
@@ -213,6 +201,7 @@ action:
               position: 35
             target:
               entity_id: cover.volets_ouest
+        alias: "[Été]Volets Ouest - Après lever de soleil avec soleil direct"
       - conditions:
           - condition: state
             state: Normal
@@ -249,6 +238,7 @@ action:
               entity_id:
                 - cover.volets_ouest
                 - cover.volets_sud
+        alias: "[Normal]Après lever de soleil "
       - conditions:
           - condition: sun
             before: sunset
@@ -272,19 +262,23 @@ action:
               entity_id:
                 - cover.volets_sud
                 - cover.volets_ouest
+        alias: "[Hiver] Volets Après lever de soleil"
       - conditions:
           - condition: or
             conditions:
               - condition: state
-                entity_id: sensor.xx_weather_alert
+                entity_id: sensor.62_weather_alert
                 attribute: Canicule
                 state: Orange
               - condition: state
-                entity_id: sensor.xx_weather_alert
+                entity_id: sensor.62_weather_alert
                 attribute: Canicule
                 state: Rouge
               - condition: numeric_state
                 entity_id: sensor.temp_maison
+                above: 24
+              - condition: numeric_state
+                entity_id: sensor.day_max_temp
                 above: 24
           - condition: not
             conditions:
@@ -294,14 +288,22 @@ action:
         sequence:
           - service: notify.notify
             data:
+              title: >-
+                ☀️ Conseil météo : Température prévu {{
+                states('sensor.day_max_temp') }}°C
               message: >-
-                Alert Canicule :{% set weather_alert =
-                state_attr('sensor.xx_weather_alert', 'Canicule') %} {% set
-                message = '\U0001FA9F Volet mode Ete recommandé ' if
-                weather_alert in ['Orange', 'Rouge'] else 'Fausse Alerte' %} {{
-                message }}
+                {% set weather_alert = state_attr('sensor.62_weather_alert',
+                'Canicule') %} {% set day_max_temp =
+                states('sensor.day_max_temp') | float %} {% if weather_alert in
+                ['Orange', 'Rouge'] or day_max_temp > 24 %}
+                  Passez vos volets en mode Été pour garder votre intérieur frais !
+                {% else %}
+                  Pas d'alerte canicule pour le moment.
+                {% endif %}
+        alias: "[Détection de forte chaleurs] changement de mode en Été"
     default: []
-  - parallel:
+  - alias: Système anti-surchauffe
+    parallel:
       - if:
           - condition: or
             conditions:
@@ -367,23 +369,54 @@ action:
             conditions:
               - condition: numeric_state
                 entity_id: input_number.volet_cuisine_transitions
-                above: 5
+                above: 4
               - condition: numeric_state
                 entity_id: input_number.volet_salon_transitions
-                above: 5
+                above: 4
               - condition: numeric_state
                 entity_id: input_number.volet_sejour_transitions
-                above: 5
+                above: 4
           - condition: template
             value_template: >-
               {{ (now() -
               states.cover.volets_de_la_maison.last_changed).total_seconds() /
               60 < 30 }}
+          - condition: or
+            conditions:
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity_id: sensor.module_volet_salon_moving
+                    state: DOWN
+                  - condition: state
+                    entity_id: sensor.module_volet_salon_moving
+                    state: UP
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity_id: sensor.module_volet_sejour_moving
+                    state: DOWN
+                  - condition: state
+                    entity_id: sensor.module_volet_sejour_moving
+                    state: UP
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity_id: sensor.module_volet_cuisine_moving
+                    state: DOWN
+                  - condition: state
+                    entity_id: sensor.module_volet_cuisine_moving
+                    state: UP
         then:
           - service: notify.notify
             data:
-              message: ⚠️ Risque de surchauffe du moteur des volets
-        else:
+              message: Un volet a changé de position plus de 4 fois 🔄.
+              title: "⚠️ Moteur en surchauffe : volet(s)"
+          - delay:
+              hours: 0
+              minutes: 30
+              seconds: 0
+              milliseconds: 0
           - service: input_number.set_value
             data:
               value: 0
@@ -392,4 +425,24 @@ action:
                 - input_number.volet_salon_transitions
                 - input_number.volet_cuisine_transitions
                 - input_number.volet_sejour_transitions
+  - parallel:
+      - choose:
+          - conditions:
+              - condition: trigger
+                id:
+                  - Mode
+                enabled: true
+            sequence:
+              - service: input_select.select_option
+                data:
+                  option: "{{ states('input_select.mode_volet') }}"
+                target:
+                  entity_id:
+                    - input_select.mode_voletouest
+                    - input_select.mode_voletsud
+              - service: automation.trigger
+                data:
+                  skip_condition: false
+                target:
+                  entity_id: automation.volet
 mode: restart
