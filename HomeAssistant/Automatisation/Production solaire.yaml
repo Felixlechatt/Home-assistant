@@ -1,12 +1,12 @@
-alias: "[NOTIFY] Production Solaire"
 description: ""
-trigger:
-  - platform: state
-    entity_id:
+mode: single
+triggers:
+  - entity_id:
       - sensor.energy_exporting_wh
-  - platform: time
-    at: "23:55:00"
-condition:
+    trigger: state
+  - at: "23:55:00"
+    trigger: time
+conditions:
   - condition: state
     entity_id: binary_sensor.presence_home
     state: "on"
@@ -24,80 +24,81 @@ condition:
         value_template: >-
           {{ states('sensor.ecu_current_power')|float <
           states('input_number.ecu_r')|float - 350}}
-action:
+  - condition: template
+    value_template: |-
+      {% set ecart = (states('sensor.ecu_current_power') | float -
+        states('input_number.ecu_r') | float) | abs %}
+      {% if ecart > 800 %}
+        {{ (now() - states('input_datetime.last_notification_solaire') | as_datetime).total_seconds() > 600 }}
+      {% elif ecart > 500 %}
+        {{ (now() - states('input_datetime.last_notification_solaire') | as_datetime).total_seconds() > 1200 }}
+      {% else %}
+        {{ (now() - states('input_datetime.last_notification_solaire') | as_datetime).total_seconds() > 1800 }}
+      {% endif %}
+actions:
   - choose:
       - conditions:
           - condition: numeric_state
             entity_id: sensor.ecu_current_power
             above: 451
             below: 850
-          - condition: template
-            value_template: >-
-              {{ (now() -
-              states.input_text.last_notification_solaire.last_changed).total_seconds()
-              / 60 > 30 }}
         sequence:
-          - service: input_number.set_value
-            data_template:
+          - data_template:
               value: "{{states('sensor.ecu_current_power') }}"
             target:
               entity_id: input_number.ecu_r
+            action: input_number.set_value
           - parallel:
               - if:
                   - condition: state
                     entity_id: person.marine
                     state: home
                 then:
-                  - service: notify.mobile_app_redmi_note_10s
-                    data:
+                  - data:
                       title: ⚡Production solaire légère
                       message: >-
                         ⛅ Production : {{ states('sensor.ecu_current_power')
                         }}wh dont <b>{{states('sensor.energy_exporting_wh') }}wh
                         en surplus</b>\n ℹ️ Ideal pour : Lampe, Televiseur,
                         Ordinateur portable
+                    action: notify.mobile_app_redmi_note_10s
+                enabled: false
               - if:
                   - condition: state
                     entity_id: person.quentin
                     state: home
                 then:
-                  - service: notify.mobile_app_redmi_note_8_pro
-                    data:
+                  - data:
                       title: ⚡Production solaire légère
                       message: >-
                         ⛅ Production : {{ states('sensor.ecu_current_power')
                         }}wh dont <b>{{states('sensor.energy_exporting_wh') }}wh
                         en surplus</b>\n ℹ️ Ideal pour : Lampe, Televiseur,
                         Ordinateur portable
-          - service: input_text.set_value
-            target:
-              entity_id: input_text.last_notification_solaire
+                    action: notify.mobile_app_redmi_note_8_pro
+          - target:
+              entity_id: input_datetime.last_notification_solaire
             data:
-              value: "{{ states('sensor.hour_minute') }}"
+              datetime: "{{ now().isoformat() }}"
+            action: input_datetime.set_datetime
       - conditions:
           - condition: numeric_state
             entity_id: sensor.ecu_current_power
             above: 851
             below: 1300
-          - condition: template
-            value_template: >-
-              {{ (now() -
-              states.input_text.last_notification_solaire.last_changed).total_seconds()
-              / 60 > 30 }}
         sequence:
-          - service: input_number.set_value
-            data_template:
+          - data_template:
               value: "{{states('sensor.ecu_current_power') }}"
             target:
               entity_id: input_number.ecu_r
+            action: input_number.set_value
           - parallel:
               - if:
                   - condition: state
                     entity_id: person.marine
                     state: home
                 then:
-                  - service: notify.mobile_app_redmi_note_10s
-                    data:
+                  - data:
                       title: ⚡Production moyenne
                       message: >-
                         ⛅ Production : {{ states('sensor.ecu_current_power')
@@ -105,13 +106,14 @@ action:
                         en surplus</b>\n ℹ️ Ideal pour : Fer à repasser,
                         Micro-onde, Aspirateur, Lave-linge, Grille-pain,
                         Bouilloire..
+                    action: notify.mobile_app_redmi_note_10s
+                enabled: false
               - if:
                   - condition: state
                     entity_id: person.quentin
                     state: home
                 then:
-                  - service: notify.mobile_app_redmi_note_8_pro
-                    data:
+                  - data:
                       title: ⚡Production moyenne
                       message: >-
                         ⛅ Production : {{ states('sensor.ecu_current_power')
@@ -119,65 +121,61 @@ action:
                         en surplus</b>\n ℹ️ Ideal pour : Fer à repasser,
                         Micro-onde, Aspirateur, Lave-linge, Grille-pain,
                         Bouilloire..
-          - service: input_text.set_value
-            target:
-              entity_id: input_text.last_notification_solaire
+                    action: notify.mobile_app_redmi_note_8_pro
+          - target:
+              entity_id: input_datetime.last_notification_solaire
             data:
-              value: "{{ states('sensor.hour_minute') }}"
+              datetime: "{{ now().isoformat() }}"
+            action: input_datetime.set_datetime
       - conditions:
           - condition: numeric_state
             entity_id: sensor.ecu_current_power
             above: 1300
-          - condition: template
-            value_template: >-
-              {{ (now() -
-              states.input_text.last_notification_solaire.last_changed).total_seconds()
-              / 60 > 30 }}
         sequence:
-          - service: input_number.set_value
-            data_template:
+          - data_template:
               value: "{{states('sensor.ecu_current_power') }}"
             target:
               entity_id: input_number.ecu_r
+            action: input_number.set_value
           - parallel:
               - if:
                   - condition: state
                     entity_id: person.marine
                     state: home
                 then:
-                  - service: notify.mobile_app_redmi_note_10s
-                    data:
+                  - data:
                       title: ⚡Production importante
                       message: >-
                         ⛅ Production : {{ states('sensor.ecu_current_power')
                         }}wh dont <b>{{states('sensor.energy_exporting_wh') }}wh
                         en surplus</b>\n ℹ️ Ideal pour : Four électrique,
                         Chauffage, Plaque de cuisson...
+                    action: notify.mobile_app_redmi_note_10s
+                enabled: false
               - if:
                   - condition: state
                     entity_id: person.quentin
                     state: home
                 then:
-                  - service: notify.mobile_app_redmi_note_8_pro
-                    data:
+                  - data:
                       title: ⚡Production importante
                       message: >-
                         ⛅ Production : {{ states('sensor.ecu_current_power')
                         }}wh dont <b>{{states('sensor.energy_exporting_wh') }}wh
                         en surplus</b>\n ℹ️ Ideal pour : Four électrique,
                         Chauffage, Plaque de cuisson...
-          - service: input_text.set_value
-            target:
-              entity_id: input_text.last_notification_solaire
+                    action: notify.mobile_app_redmi_note_8_pro
+          - target:
+              entity_id: input_datetime.last_notification_solaire
             data:
-              value: "{{ states('sensor.hour_minute') }}"
+              datetime: "{{ now().isoformat() }}"
+            action: input_datetime.set_datetime
       - conditions:
           - condition: time
             after: "23:55:00"
         sequence:
-          - service: input_number.set_value
-            data:
+          - data:
               value: 0
             target:
               entity_id: input_number.ecu_r
-mode: single
+            action: input_number.set_value
